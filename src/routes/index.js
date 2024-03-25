@@ -3,7 +3,7 @@ import db from "../database/db.js";
 
 const router = express.Router();
 router.get('/tasks', (req, res) => {
-  db.all('SELECT * FROM tasks', (err, rows) => {
+  db.all('SELECT * FROM tasks WHERE completed = 0', (err, rows) => {
     if (err) {
       console.error('Erro ao consultar dados:', err.message);
       res.status(500).json({ error: 'Erro ao buscar as tarefas.' });
@@ -16,13 +16,13 @@ router.get('/tasks', (req, res) => {
 });
 
 router.post('/tasks', (req, res) => {
-  const { name } = req.body;
+  const { name, completed } = req.body;
 
   if (!name) {
     return res.status(400).json({ error: 'O nome da tarefa é obrigatório.' });
   }
 
-  db.run('INSERT INTO tasks (name) VALUES (?)', [name], function(err) {
+  db.run('INSERT INTO tasks (name, completed) VALUES (?, ?)', [name, completed ? 1 : 0], function(err) {
     if (err) {
       console.error('Erro ao inserir dados:', err.message);
       return res.status(500).json({ error: 'Erro ao criar a tarefa.' });
@@ -35,13 +35,13 @@ router.post('/tasks', (req, res) => {
 
 router.put("/tasks/:id", (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
+  const { name, completed } = req.body;
 
   if (!name) {
     return res.status(400).json({ error: 'O nome da tarefa é obrigatório.' });
   }
 
-  db.run('UPDATE tasks SET name = ? WHERE id = ?', [name, id], function(err) {
+  db.run('UPDATE tasks SET name = ?, completed = ? WHERE id = ?', [name, completed, id], function(err) {
     if (err) {
       console.error('Erro ao atualizar dados:', err.message);
       return res.status(500).json({ error: 'Erro ao atualizar a tarefa.' });
